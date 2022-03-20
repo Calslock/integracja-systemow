@@ -1,8 +1,11 @@
 import csv, sys, re
+from typing import Union
 
 from PyQt5 import QtWidgets as qt
 from PyQt5 import QtCore as qtc
 from PyQt5 import QtGui as qtg
+
+# python>=3.6
 
 
 class ItemDelegate(qt.QItemDelegate):
@@ -18,7 +21,7 @@ class ItemDelegate(qt.QItemDelegate):
 
 
 class IntegerItemDelegate(qt.QStyledItemDelegate):
-    def __init__(self, parent, imin: int, imax: int, suffix: str | None):
+    def __init__(self, parent, imin: int, imax: int, suffix: Union[str, None]): #str | None
         super(IntegerItemDelegate, self).__init__(parent)
         self.min = imin
         self.max = imax
@@ -85,15 +88,16 @@ class App(qt.QWidget):
         self.table.setHorizontalHeaderLabels(self.names)
 
         # Setting validators
-        self.table.setItemDelegateForColumn(1, IntegerItemDelegate(self, 10, 30, '"'))
-        self.table.setItemDelegateForColumn(3, ComboItemDelegate(self, ["matowa", "blyszczaca"]))
+        self.table.setItemDelegateForColumn(1, IntegerItemDelegate(self, 0, 150, '"'))
+        self.table.setItemDelegateForColumn(3, ComboItemDelegate(self, ["matowa", "blyszczaca", "---"]))
         self.table.setItemDelegateForColumn(4, ComboItemDelegate(self, ["tak", "nie"]))
-        self.table.setItemDelegateForColumn(6, IntegerItemDelegate(self, 1, 24, None))
-        self.table.setItemDelegateForColumn(7, IntegerItemDelegate(self, 100, 9999, None))
-        self.table.setItemDelegateForColumn(8, IntegerItemDelegate(self, 1, 1024, "GB"))
-        self.table.setItemDelegateForColumn(9, IntegerItemDelegate(self, 1, 1024, "GB"))
-        self.table.setItemDelegateForColumn(12, IntegerItemDelegate(self, 1, 1024, "GB"))
+        self.table.setItemDelegateForColumn(6, IntegerItemDelegate(self, 0, 24, None))
+        self.table.setItemDelegateForColumn(7, IntegerItemDelegate(self, 0, 9999, None))
+        self.table.setItemDelegateForColumn(8, IntegerItemDelegate(self, 0, 1024, "GB"))
+        self.table.setItemDelegateForColumn(9, IntegerItemDelegate(self, 0, 1024, "GB"))
         self.table.setItemDelegateForColumn(10, ComboItemDelegate(self, ["SSD", "HDD", "---"]))
+        self.table.setItemDelegateForColumn(12, IntegerItemDelegate(self, 0, 1024, "GB"))
+        self.table.setItemDelegateForColumn(14, ComboItemDelegate(self, ["Blu-Ray", "DVD", "brak", "---"]))
 
         self.table.itemChanged.connect(self.validate)
         self.table.itemDoubleClicked.connect(self.save_val)
@@ -165,16 +169,22 @@ class App(qt.QWidget):
                             item = self.table.item(row, column)
                             if item is None:
                                 rowdata.append('')
-                            elif item.text() == "":
-                                rowdata.append("---")
+                            elif item.text() == "" or item.text() == "---":
+                                rowdata.append('')
+                            elif column == 1:
+                                rowdata.append(item.text() + '"')
+                            elif column == 8 or column == 9 or column == 12:
+                                rowdata.append(item.text() + 'GB')
                             else:
-                                match column:
-                                    case 2:
-                                        rowdata.append(item.text() + '"')
-                                    case 8 | 9 | 12:
-                                        rowdata.append(item.text() + 'GB')
-                                    case _:
-                                        rowdata.append(item.text())
+                                rowdata.append(item.text())
+                            #else:
+                                #match column:
+                                    #case 1:
+                                        #rowdata.append(item.text() + '"')
+                                    #case 8 | 9 | 12:
+                                        #rowdata.append(item.text() + 'GB')
+                                    #case _:
+                                        #rowdata.append(item.text())
                         rowdata.append('')
                         writer.writerow(rowdata)
 
@@ -188,6 +198,9 @@ class App(qt.QWidget):
                 alert.setText("Niepoprawny format")
                 alert.exec_()
                 self.table.setItem(row, column, qt.QTableWidgetItem(self.temp))
+        if column == 1 or column == 6 or column == 7 or column == 8 or column == 9 or column == 12:
+            if self.table.item(row, column).text() == "" or self.table.item(row, column).text() == "0":
+                self.table.setItem(row, column, qt.QTableWidgetItem("---"))
 
     def save_val(self, item):
         row, column = item.row(), item.column()
