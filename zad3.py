@@ -305,7 +305,6 @@ class App(qt.QWidget):
 
                         os = xml.SubElement(laptop, "os").text = noner(self.table.item(row, 13))
                         odd = xml.SubElement(laptop, "disc_reader").text = noner(self.table.item(row, 14))
-                    print(xml.dump(root))
                     xml_string = minidom.parseString(xml.tostring(root)).toprettyxml(indent="")
                     stdout.write(xml_string)
 
