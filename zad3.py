@@ -57,7 +57,12 @@ class ComboItemDelegate(qt.QItemDelegate):
 
 def noner(item: qt.QTableWidgetItem, suffix: Union[str, None] = None):
     if item.text() == "---" or item.text() == "":
-        return None
+        if suffix is None:
+            return None
+        elif suffix == "disc":
+            return ""
+    elif suffix == "disc":
+        return item.text()
     elif suffix is not None:
         return item.text() + suffix
     elif item.text() == "tak":
@@ -296,7 +301,7 @@ class App(qt.QWidget):
                         clock = xml.SubElement(processor, "clock_speed").text = noner(self.table.item(row, 7))
 
                         ram = xml.SubElement(laptop, "ram").text = noner(self.table.item(row, 8), "GB")
-                        disc = xml.SubElement(laptop, "disc", {"type": str(noner(self.table.item(row, 10)))})
+                        disc = xml.SubElement(laptop, "disc", {"type": str(noner(self.table.item(row, 10), "disc"))})
                         storage = xml.SubElement(disc, "storage").text = noner(self.table.item(row, 9), "GB")
 
                         gpu = xml.SubElement(laptop, "graphic_card")
